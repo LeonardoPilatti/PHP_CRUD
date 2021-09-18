@@ -12,3 +12,4 @@
   <br/><br/>
   <input type="submit" value="Adicionar">
 </form>
+<button><a href="index.php">[ voltar ]</a></button>

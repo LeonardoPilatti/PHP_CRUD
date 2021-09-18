@@ -1,5 +1,8 @@
 <?php 
   require 'config.php';
+  require 'dao/UsuarioDaoMysql.php';
+
+  $usuarioDao = new UsuarioDaoMysql($pdo);
 
   /// aqui eu estou selecionando do input_POST, pois ele é do tipo POST no adicionar.php;
   $name = filter_input(INPUT_POST, 'name');
@@ -7,24 +10,19 @@
 
   if($name && $email) { /// caso tenha email e name;
 
-    $sql = $pdo->prepare("SELECT * FROM usuarios WHERE email = :email"); /// aqui estou buscando se tem o email já cadastrado no banco de dados;
-    $sql->bindValue(':email', $email);
-    $sql->execute();
+    if($usuarioDao->findByEmail($email) === false) {  /// se procurou no banco e não achou algum email igual, então ele irá adicionar;
+      $novoUsuario = new Usuario();
+      $novoUsuario->setNome($name);
+      $novoUsuario->setEmail($email);
 
-    if($sql->rowCount() === 0) {  /// aqui ele irá retornar a quantidade de itens que deu certo com a pesquisa, no caso, a quantidade de emails;
-      /// para enviar os dados, é melhor usar o prepare() e depois executar, pois evita ataques hackers;
-      $sql = $pdo->prepare("INSERT INTO usuarios (nome, email) VALUES (:name, :email)");
-      $sql->bindValue(':name', $name);
-      $sql->bindValue(':email', $email);
-      $sql->execute();
+      $usuarioDao->add($novoUsuario);
 
       header("Location: index.php");
       exit;
     } else {
-      header("Location: adicionar.php");    
+      header("Location: adicionar.php");
       exit;
     }
-
   } else {  /// caso não tenha email ou name, ele irá retornar para o adicionar.php;
     header("Location: adicionar.php");    
     exit;
